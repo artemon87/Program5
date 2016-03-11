@@ -58,36 +58,34 @@ int Socket::pollRecvFrom(int time)
     // otherwise return 0 or a negative number
     int returnValue = poll( pfd, 1, 1000 );
     if(returnValue > 0)
+    {
         return 1;
+    }
     else
+    {
         return 0;
+    }
 }
 void Socket:: closeSD()
 {
     close(clientSD);
 }
+
 void Socket:: shutDownSD()
 {
     shutdown(clientSD, SHUT_WR);
 }
+
 int Socket::writeTo(char msg[], int length)
 {
-    //strcat(msg, "\r\n");
     return write(clientSD, msg, length);
-    /*int message_length = strlen(msg) + 2;
-    char message[message_length];
-    bzero(message, sizeof(message));
-    strcpy(message, msg);
-    strcat(message,  "\r\n");
-    return write(clientSD, message, message_length);*/
-    //return 1;
 }
 
-int Socket::readFrom(char msg[], int length)
+/*int Socket::readFrom(char msg[], int length)
 {
     
 
-    /*struct pollfd ufds;
+    struct pollfd ufds;
     
     ufds.fd = clientSD;                     // a socket descriptor to exmaine for read
     ufds.events = POLLIN;             // check if this sd is ready to read
@@ -108,21 +106,25 @@ int Socket::readFrom(char msg[], int length)
         val = poll( &ufds, 1, 1000 );
     }
     return 1;
-     */
-    return 1;
-}
+ 
+    //return 1;
+}*/
 char* Socket::readBuffer(char msg[], int length)
 {
-    char buf[20000];
+    struct pollfd pfd[1];
+    pfd[0].fd = clientSD;             // declare I'll check the data availability of sd
+    pfd[0].events = POLLRDNORM; // declare I'm interested in only reading from sd
+    char buf[1500];
     bzero(buf, sizeof(buf));
     int numOfChars = 0;
-    while(pollRecvFrom(1000) > 0)
+    while(poll(pfd, 1, 1000) > 0)
     {
         numOfChars = read( clientSD, msg, length );
         if(numOfChars == 0)
         {
             break;
         }
+        buf[numOfChars] = '\0';
         strcat(buf, msg);
         
     }
@@ -131,20 +133,24 @@ char* Socket::readBuffer(char msg[], int length)
     return msg;
     
 }
-void Socket:: readF( ostream& s)
+void Socket:: readData(ostream& stream)
 {
     char message[1500];
     struct pollfd ufds;
     ufds.fd = clientSD;                     // a socket descriptor to exmaine for read
     ufds.events = POLLIN;             // check if this sd is ready to read
-    ufds.revents = 0;                 // simply zero-initialized
-    while ( poll(&ufds, 1, 1000) >0 ) {                  // the socket is ready to read
-        int n = read(clientSD, message, sizeof(message)); // guaranteed to return from read
-        if (n == 0)
+    ufds.revents = 0;
+    int p = poll(&ufds, 1, 1000);
+    while (p > 0) {
+        int totalReads = read(clientSD, message, sizeof(message)); // guaranteed to return from read
+        if (totalReads == 0)
+        {
             break;
-        message[n] = '\0';
-        string msg(message);
-        s << msg;
+        }
+        message[totalReads] = '\0';
+        string strMessage(message);
+        stream << strMessage;
+        p = poll(&ufds, 1, 1000);
     }
 }
 
