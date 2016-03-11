@@ -97,10 +97,11 @@ void FTPClient:: passwd()
         sendMessage(cmdPass, passwd);
    // sleep(2);
         //clientSocket->readFrom(databuf, sizeof(databuf));
-        cout << clientSocket->readBuffer(databuf, sizeof(databuf));
+        clientSocket->readBuffer(databuf, sizeof(databuf));
+    cout << databuf;
     syst();
     //cout << endl;
-    //cout << temp;
+    
     //sleep(3);
         /*if(getCode(temp) == 230)
         {
@@ -154,7 +155,7 @@ bool FTPClient:: syst()
 }
 int FTPClient:: getCode(char buf[])
 {
-    char code[3];
+    char code[2];
     strncpy(code, buf, 3);
     return atoi(code);
 }
@@ -212,31 +213,39 @@ void FTPClient:: lsCMD()
     bzero(buffer, sizeof(buffer));
     //bzero(buf, sizeof(buf)); ////////////////////////
     strcat(buffer, "LIST");
-    temp = clientSocket->readBuffer(databuf, sizeof(databuf));
+    //temp = clientSocket->readBuffer(databuf, sizeof(databuf));
     //int c = getCode(temp);
-    while(getCode(buffer) != 150)
-    {
-        temp = clientSocket->readBuffer(databuf, sizeof(databuf));
+    //while(getCode(buffer) != 150)
+    //{
+        //cout << clientSocket->readBuffer(databuf, sizeof(databuf));
         //cout << buffer;
-    }
-    cout << temp;
+    //}
+    //cout << temp;
     sendMessage(buffer, empty);
+    clientSocket->readBuffer(databuf, sizeof(databuf));
+    cout << databuf;
+    //clientSocket->readData(cout);
+    //bzero(databuf, sizeof(databuf));
+    //temp = clientSocket->readBuffer(databuf, sizeof(databuf));
     //cout << clientSocket->readBuffer(databuf, sizeof(databuf));
+    //int n = getCode(temp);
+    //while(n != 150)
+   // {
+     //   temp = clientSocket->readBuffer(databuf, sizeof(databuf));
+    //cout << buffer;
+   // }
+    //cout << temp;
     
     //bzero(databuf, sizeof(databuf));
-    cout << clientSocket->readBuffer(databuf, sizeof(databuf));
-    
-    
-    bzero(databuf, sizeof(databuf));
     //dataSocket->readFrom(databuf, sizeof(databuf)); //read from dataSocket
     dataSocket->readData(cout);
-    cout << dataSocket->readBuffer(databuf, sizeof(databuf));
+    //cout << dataSocket->readBuffer(databuf, sizeof(databuf));
     
-    bzero(databuf, sizeof(databuf));
+    //bzero(databuf, sizeof(databuf));
     
     dataSocket->closeSD();
 
-    cout << clientSocket->readBuffer(databuf, sizeof(databuf));
+    //cout << clientSocket->readBuffer(databuf, sizeof(databuf));
     
 }
 

@@ -116,6 +116,7 @@ char* Socket::readBuffer(char msg[], int length)
     pfd[0].events = POLLRDNORM; // declare I'm interested in only reading from sd
     char buf[1500];
     bzero(buf, sizeof(buf));
+    bzero(msg, sizeof(msg));
     int numOfChars = 0;
     while(poll(pfd, 1, 1000) > 0)
     {
@@ -124,13 +125,14 @@ char* Socket::readBuffer(char msg[], int length)
         {
             break;
         }
-        buf[numOfChars] = '\0';
-        strcat(buf, msg);
+        //buf[numOfChars] = '\0';
+        //strcat(buf, msg);
+        strcpy(buf, msg);
         
     }
     //bzero(msg, sizeof(msg));
     //strcpy(msg, buf);
-    return msg;
+    return buf;
     
 }
 void Socket:: readData(ostream& stream)
