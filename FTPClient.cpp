@@ -222,8 +222,11 @@ void FTPClient:: lsCMD()
     //}
     //cout << temp;
     sendMessage(buffer, empty);
-    clientSocket->readBuffer(databuf, sizeof(databuf));
+    
+    clientSocket->readFrom(databuf, sizeof(databuf));
     cout << databuf;
+    //clientSocket->readBuffer(databuf, sizeof(databuf));
+    //cout << databuf;
     //clientSocket->readData(cout);
     //bzero(databuf, sizeof(databuf));
     //temp = clientSocket->readBuffer(databuf, sizeof(databuf));
@@ -239,6 +242,10 @@ void FTPClient:: lsCMD()
     //bzero(databuf, sizeof(databuf));
     //dataSocket->readFrom(databuf, sizeof(databuf)); //read from dataSocket
     dataSocket->readData(cout);
+    
+    clientSocket->readFrom(databuf, sizeof(databuf));
+    cout << databuf;
+    
     //cout << dataSocket->readBuffer(databuf, sizeof(databuf));
     
     //bzero(databuf, sizeof(databuf));

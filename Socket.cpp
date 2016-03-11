@@ -81,7 +81,7 @@ int Socket::writeTo(char msg[], int length)
     return write(clientSD, msg, length);
 }
 
-/*int Socket::readFrom(char msg[], int length)
+int Socket::readFrom(char msg[], int length)
 {
     
 
@@ -91,24 +91,24 @@ int Socket::writeTo(char msg[], int length)
     ufds.events = POLLIN;             // check if this sd is ready to read
     ufds.revents = 0;                 // simply zero-initialized
     int val = poll( &ufds, 1, 1000 ); // poll this socket for 1000msec (=1sec)
-    int numBytes = 0, totalBytes = 0, count = 0;
-    while ( val > 0 )
+    int numBytes = 0;
+    if ( val > 0 )
     {                  // the socket is ready to read
         //char buf[1500];
-        count++;
+        bzero(msg, sizeof(msg));
+
         numBytes = read( clientSD, msg, length ); // guaranteed to return from read
-        if((msg[numBytes] == '\0' && msg[numBytes - 1] == '\n' && msg[numBytes -2 ] == '\r') || count == 10000)
+        /*if((msg[numBytes] == '\0' && msg[numBytes - 1] == '\n' && msg[numBytes -2 ] == '\r') || count == 10000)
         {
             return numBytes;
             break;
-        }
-        totalBytes += numBytes;
-        val = poll( &ufds, 1, 1000 );
+        }*/
+
     }
-    return 1;
+    return numBytes;
  
     //return 1;
-}*/
+}
 char* Socket::readBuffer(char msg[], int length)
 {
     struct pollfd pfd[1];
