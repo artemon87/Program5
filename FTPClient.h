@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <iostream>
 #include "Socket.h"
+#include <sys/stat.h>
+#include <fcntl.h>
 
 using namespace std;
 
@@ -49,9 +51,9 @@ public:
     char* receive(char *);
     void cdCMD();
     void lsCMD();
-    void getCMD(char *);
-    void putCDM(char *);
-    void quitCMD();
+    void getCMD();
+    void putCDM();
+    bool quitCMD();
     char* strTochar(char [], string);
     bool syst();
     int getCode(char []);

@@ -39,17 +39,30 @@ int main(int argc, const char * argv[])
         cout << "ftp> ";
         string command;
         cin >> command;
-        //cout << endl;
         if(command == "ls")
         {
             ftp.lsCMD();
-            //case 'ls'   : ftp.lsCMD();
-            //case 'close': ftp.closeConnection();
-            //case 'quit' : ftp.quitCMD();
         }
         if(command == "cd")
         {
             ftp.cdCMD();
+        }
+        if(command == "close")
+        {
+            ftp.closeConnection();
+        }
+        if(command == "quit")
+        {
+            ftp.quitCMD();
+            break;
+        }
+        if(command == "get")
+        {
+            ftp.getCMD();
+        }
+        if(command == "put")
+        {
+            ftp.putCDM();
         }
     }
 

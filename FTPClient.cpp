@@ -211,15 +211,30 @@ void FTPClient:: lsCMD()
     char buffer[BUFFERSIZE], empty[0];
     bzero(buffer, sizeof(buffer));
     strcat(buffer, "LIST");
-    sendMessage(buffer, empty);
+    if(fork() == 0)
+    {
+        sendMessage(buffer, empty);
+        dataSocket->readData(cout);
+        clientSocket->readFrom(databuf, sizeof(databuf));
+        cout << databuf;
+    }
+    else
+    {
+       // sendMessage(buffer, empty);
     
-    clientSocket->readFrom(databuf, sizeof(databuf));
-    cout << databuf;
+    //clientSocket->readFrom(databuf, sizeof(databuf));
+    //cout << databuf;
     
-    dataSocket->readData(cout);
+        //dataSocket->readData(cout);
+        clientSocket->readFrom(databuf, sizeof(databuf));
+        cout << databuf;
+        wait(0);
+        wait(0);
+    }
     
-    clientSocket->readFrom(databuf, sizeof(databuf));
-    cout << databuf;
+    //clientSocket->readFrom(databuf, sizeof(databuf));
+    //cout << databuf;
+    
     
     dataSocket->closeSD();
 }
@@ -239,6 +254,116 @@ void FTPClient:: cdCMD()
     //cout << endl;
     
 }
+bool FTPClient:: quitCMD()
+{
+    char buffer[BUFFERSIZE], empty[0];
+    bzero(buffer, sizeof( buffer));
+    strcat(buffer, "QUIT");
+    sendMessage(buffer, empty);
+    clientSocket->readFrom(databuf, sizeof(databuf));
+    cout << databuf;
+    clientSocket->closeSD();
+    return true;
+}
+bool FTPClient:: closeConnection()
+{
+    clientSocket->closeSD();
+    clientSocket->readFrom(databuf, sizeof(databuf));
+    cout << databuf;
+    return true;
+}
+void FTPClient:: getCMD()
+{
+    string remoteFile;
+    cin >> remoteFile;
+    
+    mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+    int file = open( remoteFile.c_str(), O_WRONLY | O_CREAT, mode );
+    
+    passiveOpen();
+    
+    char buffer[BUFFERSIZE], empty[0], fileBuffer[50];
+    bzero(buffer, sizeof(buffer));
+    bzero(fileBuffer, sizeof(fileBuffer));
+    strcat(buffer, "TYPE I");
+    sendMessage(buffer, empty);
+    
+    clientSocket->readFrom(databuf, sizeof(databuf));
+    cout << databuf;
+    
+    bzero(buffer, sizeof(buffer));
+    strTochar(fileBuffer, remoteFile);
+    strcat(buffer, "RETR ");
+    sendMessage(buffer, fileBuffer);
+    
+    ofstream stream;
+    //stream.open(localFile.c_str(), ofstream:: out | ofstream:: binary);
+    stream.open(remoteFile.c_str(), ofstream:: out | ofstream:: binary);
+    //dataSocket->readFrom(databuf, sizeof(databuf));
+    //cout << databuf;
+    //cout << "READING" << endl;
+    
+    dataSocket->readData(stream);
+    
+    //stream.write(databuf, sizeof(databuf));
+    
+    
+    //cout << stream.;
+    
+    stream.close();
+    
+    clientSocket->readFrom(databuf, sizeof(databuf));
+    cout << databuf;
+    
+    dataSocket->closeSD();
+    
+    
+}
+void FTPClient:: putCDM()
+{
+    cout << "(local-file) ";
+    string localFile;
+    cin >> localFile;
+    cout << "(remote-file) ";
+    string remoteFile;
+    cin >> remoteFile;
+    
+    mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+    int file = open( localFile.c_str(), O_WRONLY | O_CREAT, mode );
+    
+    passiveOpen();
+    
+    char buffer[BUFFERSIZE], empty[0], fileBuffer[50];
+    bzero(buffer, sizeof(buffer));
+    bzero(fileBuffer, sizeof(fileBuffer));
+    strcat(buffer, "TYPE I");
+    sendMessage(buffer, empty);
+    
+    clientSocket->readFrom(databuf, sizeof(databuf));
+    cout << databuf;
+    
+    bzero(buffer, sizeof(buffer));
+    strTochar(fileBuffer, remoteFile);
+    strcat(buffer, "STOR ");
+    sendMessage(buffer, fileBuffer);
+    
+    ifstream stream;
+    stream.open(localFile.c_str(), ifstream:: in | ofstream:: binary);
+    
+    while(!stream.eof())
+    {
+        stream.read(buffer, sizeof(buffer));
+        dataSocket->writeTo(buffer, strlen(buffer));
+    }
+    
+    clientSocket->readFrom(databuf, sizeof(databuf));
+    cout << databuf;
+    
+    dataSocket->closeSD();
+    
+}
+
+
 
 
 
