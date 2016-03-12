@@ -211,32 +211,49 @@ void FTPClient:: lsCMD()
     char buffer[BUFFERSIZE], empty[0];
     bzero(buffer, sizeof(buffer));
     strcat(buffer, "LIST");
+    
+    
+    
+    sendMessage(buffer, empty);
+    
+    clientSocket->readFrom(databuf, sizeof(databuf));
+    cout << databuf;
+    
+    dataSocket->readData(cout);
+    
+    clientSocket->readFrom(databuf, sizeof(databuf));
+    cout << databuf;
+    
+    dataSocket->closeSD();
+    /*
     if(fork() == 0)
     {
-        sendMessage(buffer, empty);
-        dataSocket->readData(cout);
-        clientSocket->readFrom(databuf, sizeof(databuf));
-        cout << databuf;
+        
+        if(fork() == 0)
+        {
+            dataSocket->readData(cout);
+            clientSocket->readFrom(databuf, sizeof(databuf));
+            cout << databuf;
+        }
+        else
+        {
+            sendMessage(buffer, empty);
+            clientSocket->readFrom(databuf, sizeof(databuf));
+            cout << databuf;
+        }
+    
     }
     else
     {
-       // sendMessage(buffer, empty);
-    
-    //clientSocket->readFrom(databuf, sizeof(databuf));
-    //cout << databuf;
-    
-        //dataSocket->readData(cout);
         clientSocket->readFrom(databuf, sizeof(databuf));
         cout << databuf;
         wait(0);
         wait(0);
+        sleep(1);
     }
-    
-    //clientSocket->readFrom(databuf, sizeof(databuf));
-    //cout << databuf;
-    
-    
     dataSocket->closeSD();
+     */
+    
 }
 
 void FTPClient:: cdCMD()
@@ -267,6 +284,7 @@ bool FTPClient:: quitCMD()
 }
 bool FTPClient:: closeConnection()
 {
+    cout << "221 Goodbye..." << endl;
     clientSocket->closeSD();
     clientSocket->readFrom(databuf, sizeof(databuf));
     cout << databuf;
