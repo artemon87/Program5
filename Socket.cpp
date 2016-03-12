@@ -95,7 +95,7 @@ int Socket::readFrom(char msg[], int length)
     if ( val > 0 )
     {                  // the socket is ready to read
         //char buf[1500];
-        bzero(msg, sizeof(msg));
+        bzero(msg, length);
 
         numBytes = read( clientSD, msg, length ); // guaranteed to return from read
         /*if((msg[numBytes] == '\0' && msg[numBytes - 1] == '\n' && msg[numBytes -2 ] == '\r') || count == 10000)

@@ -27,7 +27,7 @@ FTPClient:: FTPClient(const char * serverURL)
         clientSocket =new Socket();
         int clientSD = clientSocket->openCientSocket(serverURL, 21);
         //cout << serverURL << endl;
-        clientSocket->readBuffer(buffer, sizeof(buffer));
+        clientSocket->readFrom(buffer, sizeof(buffer));
         int c = getCode(buffer);
         if(getCode(buffer) == 220)
         {
@@ -68,7 +68,7 @@ void FTPClient:: userName()
         strTochar(cmdUser, "USER ");
         sendMessage(cmdUser, userName);
         
-        clientSocket->readBuffer(temp, sizeof(temp));
+        clientSocket->readFrom(temp, sizeof(temp));
         if(getCode(temp) == 331)
         {
             cout << temp;
@@ -209,51 +209,19 @@ void FTPClient:: lsCMD()
 {
     passiveOpen();
     char buffer[BUFFERSIZE], empty[0];
-    char *temp;
     bzero(buffer, sizeof(buffer));
-    //bzero(buf, sizeof(buf)); ////////////////////////
     strcat(buffer, "LIST");
-    //temp = clientSocket->readBuffer(databuf, sizeof(databuf));
-    //int c = getCode(temp);
-    //while(getCode(buffer) != 150)
-    //{
-        //cout << clientSocket->readBuffer(databuf, sizeof(databuf));
-        //cout << buffer;
-    //}
-    //cout << temp;
     sendMessage(buffer, empty);
     
     clientSocket->readFrom(databuf, sizeof(databuf));
     cout << databuf;
-    //clientSocket->readBuffer(databuf, sizeof(databuf));
-    //cout << databuf;
-    //clientSocket->readData(cout);
-    //bzero(databuf, sizeof(databuf));
-    //temp = clientSocket->readBuffer(databuf, sizeof(databuf));
-    //cout << clientSocket->readBuffer(databuf, sizeof(databuf));
-    //int n = getCode(temp);
-    //while(n != 150)
-   // {
-     //   temp = clientSocket->readBuffer(databuf, sizeof(databuf));
-    //cout << buffer;
-   // }
-    //cout << temp;
     
-    //bzero(databuf, sizeof(databuf));
-    //dataSocket->readFrom(databuf, sizeof(databuf)); //read from dataSocket
     dataSocket->readData(cout);
     
     clientSocket->readFrom(databuf, sizeof(databuf));
     cout << databuf;
     
-    //cout << dataSocket->readBuffer(databuf, sizeof(databuf));
-    
-    //bzero(databuf, sizeof(databuf));
-    
     dataSocket->closeSD();
-
-    //cout << clientSocket->readBuffer(databuf, sizeof(databuf));
-    
 }
 
 void FTPClient:: cdCMD()
