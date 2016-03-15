@@ -7,7 +7,7 @@
 //
 
 
-
+#include <string>
 #include <iostream>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -25,20 +25,26 @@
 #include "Socket.h"
 #include "FTPClient.h"
 
+
 using namespace std;
+
 
 int main(int argc, const char * argv[])
 {
     FTPClient ftp(argv[1]);
+    
     ftp.userName();
     ftp.passwd();
-    //ftp.syst();
-    //ftp.passiveOpen();
+
     while(true)
     {
         cout << "ftp> ";
         string command;
         cin >> command;
+        if(command == "syst")
+        {
+            ftp.syst();
+        }
         if(command == "ls")
         {
             ftp.lsCMD();
@@ -66,10 +72,6 @@ int main(int argc, const char * argv[])
             ftp.putCDM();
         }
     }
-
-    
-    
-    
     return 0;
 }
 

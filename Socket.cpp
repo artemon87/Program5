@@ -48,6 +48,7 @@ int Socket:: openCientSocket(const char* name, int port)
     
 }
 
+//this function is not used anywhere in my program
 int Socket::pollRecvFrom(int time)
 {
     struct pollfd pfd[1];
@@ -81,34 +82,30 @@ int Socket::writeTo(char msg[], int length)
     return write(clientSD, msg, length);
 }
 
+//this function is used to display verification messages
+//from the server. It only loops once, and in case if there is
+//more data than buffer can hold, this function would not handle it.
 int Socket::readFrom(char msg[], int length)
 {
     
 
     struct pollfd ufds;
     
-    ufds.fd = clientSD;                     // a socket descriptor to exmaine for read
-    ufds.events = POLLIN;             // check if this sd is ready to read
-    ufds.revents = 0;                 // simply zero-initialized
+    ufds.fd = clientSD;
+    ufds.events = POLLIN;
+    ufds.revents = 0;                 
     int val = poll( &ufds, 1, 1000 ); // poll this socket for 1000msec (=1sec)
     int numBytes = 0;
     if ( val > 0 )
-    {                  // the socket is ready to read
-        //char buf[1500];
+    {
         bzero(msg, length);
-
         numBytes = read( clientSD, msg, length ); // guaranteed to return from read
-        /*if((msg[numBytes] == '\0' && msg[numBytes - 1] == '\n' && msg[numBytes -2 ] == '\r') || count == 10000)
-        {
-            return numBytes;
-            break;
-        }*/
-
     }
     return numBytes;
- 
-    //return 1;
 }
+
+//this function is used to display "Important Notice"
+//message.
 char* Socket::readBuffer(char msg[], int length)
 {
     struct pollfd pfd[1];
@@ -125,16 +122,14 @@ char* Socket::readBuffer(char msg[], int length)
         {
             break;
         }
-        //buf[numOfChars] = '\0';
-        //strcat(buf, msg);
         strcpy(buf, msg);
-        
     }
-    //bzero(msg, sizeof(msg));
-    //strcpy(msg, buf);
     return buf;
     
 }
+//reads data until there is nothing to read
+//this function is useful for very long messegas from the server
+//such as "ls" command retrival.
 void Socket:: readData(ostream& stream)
 {
     char message[1500];

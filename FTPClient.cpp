@@ -8,59 +8,59 @@
 
 #include "FTPClient.h"
 
+//default constructor
 FTPClient:: FTPClient()
 {
     clientSocket = new Socket();
     
 }
+//default destructor
 FTPClient:: ~FTPClient()
 {
     delete clientSocket;
 }
+
+//constructor that takes a server's URL to initiate a socket.
+//This URL will be passed to a Socket class.
 FTPClient:: FTPClient(const char * serverURL)
 {
     while(true)
     {
-        char buffer[BUFFERSIZE];
-        bzero(buffer, sizeof(buffer));
+        //char buffer[BUFFERSIZE];
+        bzero(databuf, sizeof(databuf));
         url = serverURL;
         clientSocket =new Socket();
         int clientSD = clientSocket->openCientSocket(serverURL, 21);
-        //cout << serverURL << endl;
-        clientSocket->readFrom(buffer, sizeof(buffer));
-        int c = getCode(buffer);
-        if(getCode(buffer) == 220)
+        clientSocket->readFrom(databuf, sizeof(databuf));
+        if(getCode(databuf) == 220) //check if message received starts with code 220
         {
-            cout << buffer;
+            cout << databuf;
             break;
         }
     }
-    
-    
-    
 }
-int FTPClient:: openConnection()
-{
-    return 0;
-}
+
+//this method takes a string as a given argument/parameter and
+//convers it to char buffer (char data[] parameter comes enpty at first)
 char* FTPClient:: strTochar(char data[], string str)
 {
-    //char data[BUFFERSIZE];
+    
     strncpy(data, str.c_str(), str.length());
     return data;
 }
+
+//take a user name and pass it to FTP server.For as long as you get message that
+//starts with 331 code, we good.
 void FTPClient:: userName()
 {
     while(true)
     {
         cout << "Name (" << url << ":" << getlogin() << "): ";
-        char userName[BUFFERSIZE], cmdUser[BUFFERSIZE], temp[BUFFERSIZE];
-        
-        
+        char userName[BUFFERSIZE], cmdUser[BUFFERSIZE];
         
         bzero(userName, sizeof(userName));
         bzero(cmdUser, sizeof(cmdUser));
-        bzero(temp, sizeof(temp));
+        bzero(databuf, sizeof(databuf));
         
         string name;
         cin >> name;
@@ -68,66 +68,59 @@ void FTPClient:: userName()
         strTochar(cmdUser, "USER ");
         sendMessage(cmdUser, userName);
         
-        clientSocket->readFrom(temp, sizeof(temp));
-        if(getCode(temp) == 331)
+        clientSocket->readFrom(databuf, sizeof(databuf));
+        if(getCode(databuf) == 331)
         {
-            cout << temp;
+            cout << databuf;
             break;
         }
-        //cout << endl;
     }
 }
+//take a password from user and send it to server, if server
+//authenticates it send a message to user that starts with code 230;
+//otherwise system prompts to enter a pass again
 void FTPClient:: passwd()
 {
-    //while(true)
-    //{
+    while(true)
+    {
         cout << "Password: ";
-    char passwd[BUFFERSIZE], cmdPass[BUFFERSIZE];//, temp[20000];
-    char *temp;
+        char passwd[BUFFERSIZE], cmdPass[BUFFERSIZE];//, temp[20000];
   
         bzero(passwd, sizeof(passwd));
         bzero(cmdPass, sizeof(cmdPass));
-        //bzero(temp, sizeof(temp));
+        
         string password;
         cin >> password;
-        
         
         strTochar(passwd, password);
         strTochar(cmdPass, "PASS ");
         sendMessage(cmdPass, passwd);
-   // sleep(2);
-        //clientSocket->readFrom(databuf, sizeof(databuf));
+   
+        
         clientSocket->readBuffer(databuf, sizeof(databuf));
-    cout << databuf;
-    syst();
-    //cout << endl;
-    
-    //sleep(3);
-        /*if(getCode(temp) == 230)
+        if(getCode(databuf) == 230)
         {
-            cout << temp;
+            cout << databuf;
+            syst(); // sends syst request to FTP server
             break;
-        }*/
-    //sleep(1);
-       // cout << databuf;
-    //}
+        }
+        else
+        {
+            cerr << "Error occurred from retrieving command" << endl;
+            cout << databuf;
+        }
+    }
     
     
 
 }
-int FTPClient:: sendMessage1(char* cmd, char *message)
-{
-    char temp[BUFFERSIZE];
-    bzero(temp, sizeof(temp));
-    strcpy(temp, cmd);
-    strcat(temp, message);
-    strcat(temp, "\r\n\0");
-    //return clientSocket->writeTo(temp, strlen(temp));
-    //cout << clientSocket->readBuffer(databuf, sizeof(databuf));
-    clientSocket->writeTo(temp, strlen(temp));
-    cout << clientSocket->readBuffer(databuf, sizeof(databuf));
-    return 1;
-}
+
+//takes two arguments: command and massage from user,
+//if message is empty, it sends command only such as "ls".
+//Bufore we do that we create empty buffer (even though we can use
+//cmd's buffer space) and copy cmd to that buffer space.
+//Then we concatenate cmd and message. Finally, we end our
+//buffer data with "\r\n\0" to make sure that server sees end of a file
 int FTPClient:: sendMessage(char* cmd, char *message)
 {
     char temp[BUFFERSIZE];
@@ -138,6 +131,7 @@ int FTPClient:: sendMessage(char* cmd, char *message)
     return clientSocket->writeTo(temp, strlen(temp));
     
 }
+//syst request.
 bool FTPClient:: syst()
 {
     
@@ -147,37 +141,62 @@ bool FTPClient:: syst()
     sendMessage(systCMD, empty);
     bzero(databuf, sizeof(databuf));
     clientSocket->readBuffer(databuf, sizeof(databuf));
-    cout << databuf;
-    //cout << endl;
+    if(getCode(databuf) == 215)
+    {
+        cout << databuf;
+    }
+    else
+    {
+        cerr << "Error occurred from retrieving command" << endl;
+        cout << databuf;
+    }
     
     return true;
     
 }
+
+//gets first few bytes from a buffer to get its code number
+//and returns code as an int value
 int FTPClient:: getCode(char buf[])
 {
     char code[2];
     strncpy(code, buf, 3);
     return atoi(code);
 }
+
+//passive open request. We send message to server with PASV cmd
+//and get new ip address from server that gets saved in buffer.
+//We then send this buffer to calculatePASSV method that
+//would take buffer and converts whats inside to IP address
 void FTPClient:: passiveOpen()
 {
     char buffer[BUFFERSIZE], empty[1];
-    char *newIP;
     bzero(buffer, sizeof(buffer));
     bzero(empty, sizeof(empty));
     strcat(buffer, "PASV");
     sendMessage(buffer, empty);
     bzero(databuf, sizeof(databuf));
     clientSocket->readBuffer(databuf, sizeof(buffer));
-    cout << databuf;
-    calculatePASSV(databuf);
+    if(getCode(databuf) == 227)
+    {
+        cout << databuf;
+        calculatePASSV(databuf);
+    }
+    else
+    {
+        cerr << "Error occurred from retrieving command" << endl;
+        cout << databuf;
+    }
+    
 }
+
+//convers whats inside buffer to an ip address.
+//There are couple of ways to do that but I used vector to store
+//individual numbers and then used stringstream to make an ip like data from it
 void FTPClient:: calculatePASSV(char buffer[])
 {
     vector<int> values;
-    //char finalBuf[6];
     char temp[25];
-    //bzero(finalBuf, sizeof(finalBuf));
     for(int i = 0; i < strlen(buffer); i++)
     {
         if(buffer[i] == '(')
@@ -205,15 +224,19 @@ void FTPClient:: calculatePASSV(char buffer[])
     dataSocket = new Socket();
     dataFD = dataSocket->openCientSocket(newIP.str().c_str(), port);
 }
+
+//LS command. Bahaves similar to any other command, except that it uses readDate
+//function from Socket class (recall that readDate function is used with this
+//command only). readData can read enormous amount of data.
+//Commented out area was intended to be used first, but child was behaving
+//weird in some cases; therefore I commented it out
 void FTPClient:: lsCMD()
 {
     passiveOpen();
     char buffer[BUFFERSIZE], empty[0];
     bzero(buffer, sizeof(buffer));
     strcat(buffer, "LIST");
-    
-    
-    
+
     sendMessage(buffer, empty);
     
     clientSocket->readFrom(databuf, sizeof(databuf));
@@ -228,34 +251,29 @@ void FTPClient:: lsCMD()
     /*
     if(fork() == 0)
     {
+        sendMessage(buffer, empty);
         
-        if(fork() == 0)
-        {
-            dataSocket->readData(cout);
-            clientSocket->readFrom(databuf, sizeof(databuf));
-            cout << databuf;
-        }
-        else
-        {
-            sendMessage(buffer, empty);
-            clientSocket->readFrom(databuf, sizeof(databuf));
-            cout << databuf;
-        }
-    
-    }
-    else
-    {
         clientSocket->readFrom(databuf, sizeof(databuf));
         cout << databuf;
+        
+        dataSocket->readData(cout);
+        
+        clientSocket->readFrom(databuf, sizeof(databuf));
+        cout << databuf;
+    }
+
+    else
+    {
         wait(0);
-        wait(0);
-        sleep(1);
     }
     dataSocket->closeSD();
-     */
+    */
     
 }
 
+//change directory function.
+//prompts user to give directory address.
+//Going back works too
 void FTPClient:: cdCMD()
 {
     char buffer[10], dirBuffer[50];
@@ -268,10 +286,12 @@ void FTPClient:: cdCMD()
     sendMessage(buffer, dirBuffer);
     bzero(databuf, sizeof(databuf));
     cout << clientSocket->readBuffer(databuf, sizeof(databuf));
-    //cout << endl;
+   
     
 }
-bool FTPClient:: quitCMD()
+//quit command
+//Sends command, reads message from server, and finally closes socket
+void FTPClient:: quitCMD()
 {
     char buffer[BUFFERSIZE], empty[0];
     bzero(buffer, sizeof( buffer));
@@ -280,16 +300,21 @@ bool FTPClient:: quitCMD()
     clientSocket->readFrom(databuf, sizeof(databuf));
     cout << databuf;
     clientSocket->closeSD();
-    return true;
 }
-bool FTPClient:: closeConnection()
+
+//close command
+//It shuds down write end of a socket. It cand still read from it
+void FTPClient:: closeConnection()
 {
     cout << "221 Goodbye..." << endl;
-    clientSocket->closeSD();
-    clientSocket->readFrom(databuf, sizeof(databuf));
-    cout << databuf;
-    return true;
+    clientSocket->shutDownSD();
 }
+
+//get command.
+//initiates request (TYPE I -> RETR), opens file to write
+//and create a file that it will write to. We call readData that
+//will read buffer (file from a server) and at the same time writes
+//to ofstream. Finally we close file and close dataSocket
 void FTPClient:: getCMD()
 {
     string remoteFile;
@@ -315,19 +340,8 @@ void FTPClient:: getCMD()
     sendMessage(buffer, fileBuffer);
     
     ofstream stream;
-    //stream.open(localFile.c_str(), ofstream:: out | ofstream:: binary);
     stream.open(remoteFile.c_str(), ofstream:: out | ofstream:: binary);
-    //dataSocket->readFrom(databuf, sizeof(databuf));
-    //cout << databuf;
-    //cout << "READING" << endl;
-    
     dataSocket->readData(stream);
-    
-    //stream.write(databuf, sizeof(databuf));
-    
-    
-    //cout << stream.;
-    
     stream.close();
     
     clientSocket->readFrom(databuf, sizeof(databuf));
@@ -337,6 +351,12 @@ void FTPClient:: getCMD()
     
     
 }
+
+//put command
+//Behaves similar to get cmmand.
+//We open file, if doesnt extst we create it. Then
+//we read content of a file and write to a file that we will
+//store on a server.
 void FTPClient:: putCDM()
 {
     cout << "(local-file) ";
