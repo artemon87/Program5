@@ -74,9 +74,10 @@ void Socket:: closeSD()
 
 void Socket:: shutDownSD()
 {
-    shutdown(clientSD, SHUT_WR);
+    shutdown(clientSD, SHUT_RD);
 }
 
+//writes to socket buffer
 int Socket::writeTo(char msg[], int length)
 {
     return write(clientSD, msg, length);
@@ -105,13 +106,13 @@ int Socket::readFrom(char msg[], int length)
 }
 
 //this function is used to display "Important Notice"
-//message.
-char* Socket::readBuffer(char msg[], int length)
+//message. It polls until there is somthing to poll from
+void Socket::readBuffer(char msg[], int length)
 {
     struct pollfd pfd[1];
     pfd[0].fd = clientSD;             // declare I'll check the data availability of sd
-    pfd[0].events = POLLRDNORM; // declare I'm interested in only reading from sd
-    char buf[1500];
+    pfd[0].events = POLLRDNORM;
+    char buf[2000];         //was used for testing
     bzero(buf, sizeof(buf));
     bzero(msg, sizeof(msg));
     int numOfChars = 0;
@@ -122,10 +123,8 @@ char* Socket::readBuffer(char msg[], int length)
         {
             break;
         }
-        strcpy(buf, msg);
+        strcpy(buf, msg);    //disregard this code (used for testing)
     }
-    return buf;
-    
 }
 //reads data until there is nothing to read
 //this function is useful for very long messegas from the server

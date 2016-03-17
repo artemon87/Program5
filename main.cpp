@@ -43,32 +43,39 @@ int main(int argc, const char * argv[])
         cin >> command;
         if(command == "syst")
         {
+            ftp.setCommandRequest("syst");
             ftp.syst();
         }
         if(command == "ls")
         {
+            ftp.setCommandRequest("ls");
             ftp.lsCMD();
         }
         if(command == "cd")
         {
+            ftp.setCommandRequest("cd");
             ftp.cdCMD();
         }
         if(command == "close")
         {
+            ftp.setCommandRequest("close");
             ftp.closeConnection();
-            break;
+            //break;
         }
         if(command == "quit")
         {
+            ftp.setCommandRequest("quit");
             ftp.quitCMD();
             break;
         }
         if(command == "get")
         {
+            ftp.setCommandRequest("get");
             ftp.getCMD();
         }
         if(command == "put")
         {
+            ftp.setCommandRequest("put");
             ftp.putCDM();
         }
     }

@@ -26,7 +26,6 @@ FTPClient:: FTPClient(const char * serverURL)
 {
     while(true)
     {
-        //char buffer[BUFFERSIZE];
         bzero(databuf, sizeof(databuf));
         url = serverURL;
         clientSocket =new Socket();
@@ -78,13 +77,15 @@ void FTPClient:: userName()
 }
 //take a password from user and send it to server, if server
 //authenticates it send a message to user that starts with code 230;
-//otherwise system prompts to enter a pass again
+//otherwise, system prompts to enter a pass again
 void FTPClient:: passwd()
 {
-    while(true)
+    int code = 0;
+    do
     {
         cout << "Password: ";
         char passwd[BUFFERSIZE], cmdPass[BUFFERSIZE];//, temp[20000];
+        bzero(databuf, sizeof(databuf));
   
         bzero(passwd, sizeof(passwd));
         bzero(cmdPass, sizeof(cmdPass));
@@ -98,20 +99,15 @@ void FTPClient:: passwd()
    
         
         clientSocket->readBuffer(databuf, sizeof(databuf));
-        if(getCode(databuf) == 230)
+        code = getCode(databuf);
+        if(getCode(databuf) == 501)
         {
             cout << databuf;
-            syst(); // sends syst request to FTP server
-            break;
         }
-        else
-        {
-            cerr << "Error occurred from retrieving command" << endl;
-            cout << databuf;
-        }
-    }
-    
-    
+   }
+    while(code != 230);
+    cout << databuf;
+    syst();
 
 }
 
@@ -128,7 +124,14 @@ int FTPClient:: sendMessage(char* cmd, char *message)
     strcpy(temp, cmd);
     strcat(temp, message);
     strcat(temp, "\r\n\0");
-    return clientSocket->writeTo(temp, strlen(temp));
+    if(commandReques == "close")
+    {
+        return dataSocket->writeTo(temp, strlen(temp));
+    }
+    else
+    {
+        return clientSocket->writeTo(temp, strlen(temp));
+    }
     
 }
 //syst request.
@@ -143,11 +146,6 @@ bool FTPClient:: syst()
     clientSocket->readBuffer(databuf, sizeof(databuf));
     if(getCode(databuf) == 215)
     {
-        cout << databuf;
-    }
-    else
-    {
-        cerr << "Error occurred from retrieving command" << endl;
         cout << databuf;
     }
     
@@ -285,7 +283,8 @@ void FTPClient:: cdCMD()
     strTochar(buffer, "CWD ");
     sendMessage(buffer, dirBuffer);
     bzero(databuf, sizeof(databuf));
-    cout << clientSocket->readBuffer(databuf, sizeof(databuf));
+    clientSocket->readBuffer(databuf, sizeof(databuf));
+    cout << databuf;
    
     
 }
@@ -303,11 +302,18 @@ void FTPClient:: quitCMD()
 }
 
 //close command
-//It shuds down write end of a socket. It cand still read from it
+//It closes dataSD. You can still operate but.
+//All it does is it closes data SD so that no
+//data is being sent
 void FTPClient:: closeConnection()
 {
+    char buffer[BUFFERSIZE], empty[0];
+    bzero(buffer, sizeof( buffer));
+    strcat(buffer, "QUIT");
+    sendMessage(buffer, empty);
     cout << "221 Goodbye..." << endl;
-    clientSocket->shutDownSD();
+    dataSocket->closeSD();
+    //clientSocket->shutDownSD();
 }
 
 //get command.
@@ -401,6 +407,11 @@ void FTPClient:: putCDM()
     
 }
 
+//sets the name of command passed (used with sendMessage function)
+void FTPClient:: setCommandRequest(string name)
+{
+    commandReques = name;
+}
 
 
 

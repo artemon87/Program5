@@ -56,8 +56,10 @@ public:
     bool syst();
     int getCode(char []);
     void calculatePASSV(char[]);
+    void setCommandRequest(string);
 
 private:
+    string commandReques;
     Socket *clientSocket;
     Socket *dataSocket;
     int dataFD;

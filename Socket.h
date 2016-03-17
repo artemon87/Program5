@@ -44,7 +44,7 @@ public:
     void shutDownSD();
     int writeTo(char *, int);
     int readFrom(char *, int);
-    char* readBuffer(char *, int);
+    void readBuffer(char *, int);
     void readData(ostream&);
     //int sendTo(char msg[], int length);
     //int recvFrom(char msg[], int length);
